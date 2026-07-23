@@ -12,7 +12,7 @@ from typing import Union, List
 from core.exceptions import SecurityViolationError
 
 # Patterns for masking secrets in logs and UI labels
-_API_KEY_PATTERN = re.compile(r'(AIzaSy[A-Za-z0-9_-]{33}|[a-zA-Z0-9]{32,64})')
+_API_KEY_PATTERN = re.compile(r'(MOCK_SECRET_[A-Za-z0-9_-]{16,64}|[a-zA-Z0-9]{39,64})')
 
 def mask_secret(text: str) -> str:
     """

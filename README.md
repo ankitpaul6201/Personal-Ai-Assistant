@@ -12,9 +12,67 @@
 
 ---
 
-## 📌 Overview
+## 🛠️ Complete Tech Stack
 
-**J.A.R.V.I.S. AI** is an enterprise-ready, cross-platform personal AI assistant engineered around the **Gemini Live API**. It features real-time bidirectional audio streaming, native desktop and camera computer vision, hardware telemetry monitoring, autonomous system control, grounded web search, and dynamic UI theme customization.
+J.A.R.V.I.S. AI is engineered using modern, production-grade Python technologies:
+
+- 🧠 **Core AI Engine**: Google Gemini Live API (`google-genai` SDK) via bidirectional WebSockets.
+- 🎨 **User Interface**: PyQt6 with custom vector `HudCanvas` rendering, real-time waveform visualizers, and Ethnocentric / Source Code Pro typography.
+- 👁️ **Computer Vision & Perception**: OpenCV (`cv2`) hardware video capture and `mss` high-speed screen frame grabbing.
+- 🎙️ **Audio Processing**: `PyAudio` raw PCM streaming, signal processing, and low-latency buffer queues.
+- ⚙️ **System Control & Telemetry**: `psutil` hardware monitoring (CPU, RAM, GPU, Temp) and OS-native automation.
+- 🌐 **Web Automation & Search**: `Playwright` browser automation and grounded multi-mode Google / DuckDuckGo search.
+- 📱 **Remote Dashboard**: `FastAPI`, `Uvicorn`, and `cryptography` (AES-256 & local self-signed SSL certificates).
+
+---
+
+## ⚡ Getting Started Workflow
+
+### Prerequisites
+- **Python**: Make sure **Python 3.11 or 3.12** is installed on your computer beforehand ([Download Python](https://www.python.org/downloads/)).
+- **Hardware**: Microphone and webcam connected.
+- **API Key**: Free Gemini API key from [Google AI Studio](https://aistudio.google.com/).
+
+---
+
+### Step 1: Obtain the Project
+
+#### Option A: Clone with Git
+```bash
+git clone https://github.com/ankitpaul6201/Personal-Ai-Assistant.git
+cd Personal-Ai-Assistant
+```
+
+#### Option B: Download ZIP
+1. Click **Code ➔ Download ZIP** on GitHub (or download `Personal-Ai-Assistant-main.zip`).
+2. Extract the `.zip` archive to a folder on your computer.
+3. Open a Terminal / Command Prompt inside the extracted folder.
+
+---
+
+### Step 2: Run First-Time Setup Wizard
+
+Run the automated setup script:
+
+```bash
+python setup.py
+```
+
+The interactive setup wizard will:
+1. Verify Python version compatibility.
+2. Install all required dependencies (`pip install -r requirements.txt`).
+3. Guide you through entering your **Gemini API Key**, **Assistant Name**, and **User Title**.
+4. Create your secure local configuration file (`config/api_keys.json`).
+
+---
+
+### Step 3: Launch J.A.R.V.I.S. AI
+
+Once setup is complete, start the assistant by running:
+
+```bash
+python main.py
+```
 
 ---
 
@@ -34,99 +92,23 @@ graph TD
 
 ---
 
-## ✨ Core Features
+## 🔒 Security & Secret Management
 
-| Subsystem | Capabilities |
-| :--- | :--- |
-| 🎙️ **Voice Engine** | Native zero-latency audio streaming via Gemini Live API WebSocket connection |
-| 👁️ **Visual Perception** | Concurrent camera stream and desktop screen capture (`mss` / `OpenCV`) |
-| ⚙️ **System Control** | Volume, screen brightness, WiFi, task manager, and shortcut automation |
-| 📊 **Hardware Telemetry** | Live CPU, RAM, GPU, and temperature telemetry with automated alerts |
-| 📋 **Clipboard Intelligence** | One-click translate, summarize, explain, and debug floating panel |
-| 🎨 **Dynamic UI Engine** | Custom PyQt6 arc-reactor paint engine, color wheel picker, and status widgets |
-| 📱 **Remote Dashboard** | Mobile pairing HTTPS server with encrypted AES-256 session pairing |
+- **Local Secrets & Isolation**: API keys (`config/api_keys.json`) and personal memory files (`memory/long_term.json`) are stored strictly on your local computer and excluded from Git commits via `.gitignore`.
+- **Dynamic Local Certificates**: Dashboard HTTPS server auto-generates a unique local SSL certificate (`2048-bit RSA`) on demand — no static private keys are ever stored or committed.
+- **Redaction Engine**: Automated secret masking (`core/security.py`) filters API key patterns from all logs and UI elements.
+- **Boundary Checks**: File operations validate path bounds (`validate_safe_path`) preventing directory traversal vulnerabilities.
 
 ---
 
-## 🔒 Security & Privacy Model
-
-- **Local Secret Isolation**: API keys (`config/api_keys.json`) and personal memory stores (`memory/long_term.json`) are stored strictly on your local device and excluded from Git commits via `.gitignore`.
-- **Automatic Secret Redaction**: All log outputs and UI traces sanitize API keys using centralized secret masking (`core/security.py`).
-- **Path Traversal Protection**: File operations strictly enforce boundary checks (`validate_safe_path`) preventing directory traversal attacks.
-- **HTTP Security Headers**: Dashboard server enforces `Content-Security-Policy`, `X-Frame-Options: DENY`, and `X-Content-Type-Options: nosniff`.
-
----
-
-## ⚡ Quick Start
-
-### 1. Prerequisites
-- **Python**: `3.11` or `3.12`
-- **Audio & Video**: Microphone and webcam
-- **API Key**: Gemini API key from [Google AI Studio](https://aistudio.google.com/)
-
-### 2. Installation
-
-```bash
-# Clone repository
-git clone https://github.com/ankitpaul6201/Personal-Ai-Assistant.git
-cd Personal-Ai-Assistant
-
-# Create virtual environment
-python -m venv .venv
-# On Windows:
-.venv\Scripts\activate
-# On macOS/Linux:
-source .venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### 3. Configuration
-
-Initialize local configuration from template:
-
-```bash
-cp config/api_keys.json.example config/api_keys.json
-```
-
-Edit `config/api_keys.json`:
-```json
-{
-    "gemini_api_key": "YOUR_GEMINI_API_KEY_HERE",
-    "os_system": "Windows",
-    "assistant_name": "JARVIS",
-    "user_name": "sir",
-    "ui_color": "#00e5ff"
-}
-```
-
-### 4. Running the Assistant
-
-```bash
-python main.py
-```
-
----
-
-## 🧪 Testing & Code Quality
-
-Run the automated unit and security test suite:
-
-```bash
-python -m unittest discover tests
-```
-
----
-
-## 📄 Open Source Governance
+## 📄 Governance & Open Source
 
 - [LICENSE](LICENSE) — MIT License
-- [SECURITY.md](SECURITY.md) — Security Policy & Disclosure Protocol
+- [SECURITY.md](SECURITY.md) — Security Policy & Vulnerability Protocol
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — Contributor Code of Conduct
-- [CONTRIBUTING.md](CONTRIBUTING.md) — Development Setup & PR Guidelines
-- [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) — Dependency Attributions
-- [SUPPORTED_VERSIONS.md](SUPPORTED_VERSIONS.md) — Platform Support Lifecycle
+- [CONTRIBUTING.md](CONTRIBUTING.md) — Development Setup & Guidelines
+- [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) — Dependency Licenses
+- [SUPPORTED_VERSIONS.md](SUPPORTED_VERSIONS.md) — Platform Support Matrix
 
 ---
 
