@@ -656,32 +656,23 @@ class HudCanvas(QWidget):
                 QPointF(cx + r_inner_ticks_out * math.cos(rad), cy - r_inner_ticks_out * math.sin(rad))
             )
 
-        # 9. Center Face image OR Fallback Jarvis Orb
-        if self._face_px:
-            fsz = int(fw * 0.52 * self._scale)
-            scaled = self._face_px.scaled(
-                fsz, fsz,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
-            )
-            p.drawPixmap(int(cx - fsz / 2), int(cy - fsz / 2), scaled)
-        else:
-            orb_r = int(fw * 0.22 * self._scale)
-            oc = (200, 0, 50) if self.muted else (0, 60, 110)
-            for i in range(8, 0, -1):
-                r2 = int(orb_r * i / 8)
-                frc = i / 8
-                a = max(0, min(255, int(self._halo * 1.1 * frc)))
-                p.setBrush(QBrush(QColor(int(oc[0] * frc), int(oc[1] * frc), int(oc[2] * frc), a)))
-                p.setPen(Qt.PenStyle.NoPen)
-                p.drawEllipse(QRectF(cx - r2, cy - r2, r2 * 2, r2 * 2))
+        # 9. Center Jarvis Vector Orb & Text
+        orb_r = int(fw * 0.22 * self._scale)
+        oc = (200, 0, 50) if self.muted else (0, 60, 110)
+        for i in range(8, 0, -1):
+            r2 = int(orb_r * i / 8)
+            frc = i / 8
+            a = max(0, min(255, int(self._halo * 1.1 * frc)))
+            p.setBrush(QBrush(QColor(int(oc[0] * frc), int(oc[1] * frc), int(oc[2] * frc), a)))
+            p.setPen(Qt.PenStyle.NoPen)
+            p.drawEllipse(QRectF(cx - r2, cy - r2, r2 * 2, r2 * 2))
 
-            p.setPen(QPen(qcol(C.WHITE if not self.muted else C.MUTED_C, min(255, int(self._halo * 2.5))), 1.5))
-            font_sz = max(9, min(20, int(fw * 0.045)))
-            p.setFont(QFont(self._custom_font_family, font_sz, QFont.Weight.Bold))
-            disp_name = "J.A.R.V.I.S." if self._assistant_name.upper() == "JARVIS" else self._assistant_name
-            p.drawText(QRectF(cx - fw * 0.35, cy - font_sz - 2, fw * 0.7, (font_sz + 2) * 2),
-                       Qt.AlignmentFlag.AlignCenter, disp_name)
+        p.setPen(QPen(qcol(C.WHITE if not self.muted else C.MUTED_C, min(255, int(self._halo * 2.5))), 1.5))
+        font_sz = max(9, min(20, int(fw * 0.045)))
+        p.setFont(QFont(self._custom_font_family, font_sz, QFont.Weight.Bold))
+        disp_name = "J.A.R.V.I.S." if self._assistant_name.upper() == "JARVIS" else self._assistant_name
+        p.drawText(QRectF(cx - fw * 0.35, cy - font_sz - 2, fw * 0.7, (font_sz + 2) * 2),
+                   Qt.AlignmentFlag.AlignCenter, disp_name)
 
         # 10. Particles
         for pt in self._particles:
@@ -2510,7 +2501,11 @@ class MainWindow(QMainWindow):
             apply_ui_accent(_ui_color)
 
         self.setWindowTitle(f"{_display} AI")
-        app_icon_path = BASE_DIR / "assets" / "logo.png"
+        app_icon_path = BASE_DIR / "face.png"
+        if not app_icon_path.exists():
+            app_icon_path = BASE_DIR / "assets" / "face.png"
+        if not app_icon_path.exists():
+            app_icon_path = BASE_DIR / "assets" / "logo.png"
         if app_icon_path.exists():
             self.setWindowIcon(QIcon(str(app_icon_path)))
         self.setMinimumSize(_MIN_W, _MIN_H)
@@ -3372,7 +3367,11 @@ class MainWindow(QMainWindow):
         hdr_left = QHBoxLayout()
         hdr_left.setSpacing(10)
 
-        logo_img_path = BASE_DIR / "assets" / "logo.png"
+        logo_img_path = BASE_DIR / "face.png"
+        if not logo_img_path.exists():
+            logo_img_path = BASE_DIR / "assets" / "face.png"
+        if not logo_img_path.exists():
+            logo_img_path = BASE_DIR / "assets" / "logo.png"
         if logo_img_path.exists():
             logo_icon = QLabel()
             px = QPixmap(str(logo_img_path)).scaled(
