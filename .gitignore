@@ -1,0 +1,33 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environment & Secret Credentials (NEVER COMMIT API KEYS OR PERSONAL MEMORY)
+config/api_keys.json
+memory/*.json
+.env
+.env.*
+
+# Large compiled binaries (> 100MB GitHub limit)
+*.dll
+*.exe
+Desktop Mate/
+
+# Logs & Temporary Files
+*.log
+err.log
+out.log
+out2.log
+
+# IDE & OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Virtual Environments
+venv/
+env/
+.venv/
