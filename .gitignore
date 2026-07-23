@@ -14,10 +14,13 @@ memory/*.json
 .env
 .env.*
 
-# Large compiled binaries (> 100MB GitHub limit)
+# Large compiled binaries & Fonts (> 100MB GitHub limit / font assets)
 *.dll
 *.exe
 Desktop Mate/
+*.ttf
+*.otf
+Source_Code_Pro/
 
 # Logs & Temporary Files
 *.log
