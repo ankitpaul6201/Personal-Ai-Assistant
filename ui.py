@@ -398,7 +398,7 @@ class HudCanvas(QWidget):
     def __init__(self, face_path: str, assistant_name: str = "J.A.R.V.I.S", parent=None):
         super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent)
-        self.setMinimumSize(300, 300)
+        self.setMinimumSize(100, 100)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         self.muted    = False
@@ -577,17 +577,29 @@ class HudCanvas(QWidget):
         p.drawArc(QRectF(cx - r_thick_inner_line, cy - r_thick_inner_line, r_thick_inner_line * 2, r_thick_inner_line * 2),
                   int(self._rings[0] * 16), int(120 * 16))
 
-        # 5. Yellow/Orange Indicator Arc (Left Side)
+        # 5. Yellow/Orange Indicator Arc (Left & Right Sides)
         r_yellow_arc = fw * 0.39
         p.setPen(QPen(qcol(acc2_col, 220), 6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
+        # Left Side Arc (135° to 225°)
         p.drawArc(QRectF(cx - r_yellow_arc, cy - r_yellow_arc, r_yellow_arc * 2, r_yellow_arc * 2),
                   int(135 * 16), int(90 * 16))
+        # Right Side Arc (-45° to 45°)
+        p.drawArc(QRectF(cx - r_yellow_arc, cy - r_yellow_arc, r_yellow_arc * 2, r_yellow_arc * 2),
+                  int(-45 * 16), int(90 * 16))
 
-        # Yellow arc inner tick lines
+        # Yellow arc inner tick lines (Left & Right Sides)
         p.setPen(QPen(qcol(acc2_col, 180), 1))
         r_yellow_ticks_outer = r_yellow_arc - 3
         r_yellow_ticks_inner = r_yellow_arc - 10
+        # Left ticks
         for deg in range(135, 226, 3):
+            rad = math.radians(deg)
+            p.drawLine(
+                QPointF(cx + r_yellow_ticks_inner * math.cos(rad), cy - r_yellow_ticks_inner * math.sin(rad)),
+                QPointF(cx + r_yellow_ticks_outer * math.cos(rad), cy - r_yellow_ticks_outer * math.sin(rad))
+            )
+        # Right ticks
+        for deg in range(-45, 46, 3):
             rad = math.radians(deg)
             p.drawLine(
                 QPointF(cx + r_yellow_ticks_inner * math.cos(rad), cy - r_yellow_ticks_inner * math.sin(rad)),
@@ -666,9 +678,10 @@ class HudCanvas(QWidget):
                 p.drawEllipse(QRectF(cx - r2, cy - r2, r2 * 2, r2 * 2))
 
             p.setPen(QPen(qcol(C.WHITE if not self.muted else C.MUTED_C, min(255, int(self._halo * 2.5))), 1.5))
-            p.setFont(QFont(self._custom_font_family, 20, QFont.Weight.Bold))
+            font_sz = max(9, min(20, int(fw * 0.045)))
+            p.setFont(QFont(self._custom_font_family, font_sz, QFont.Weight.Bold))
             disp_name = "J.A.R.V.I.S." if self._assistant_name.upper() == "JARVIS" else self._assistant_name
-            p.drawText(QRectF(cx - 150, cy - 22, 300, 44),
+            p.drawText(QRectF(cx - fw * 0.35, cy - font_sz - 2, fw * 0.7, (font_sz + 2) * 2),
                        Qt.AlignmentFlag.AlignCenter, disp_name)
 
         # 10. Particles
@@ -2149,14 +2162,22 @@ class WifiSignalIcon(QWidget):
         p.drawArc(QRectF(cx - 11.5, cy - 11.5, 23, 23), 45 * 16, 90 * 16)
 
 class NewsUpdatesWidget(QWidget):
+    _news_sig = pyqtSignal(list)
+
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setStyleSheet(f"background: {C.PANEL}; border: 1px solid {C.BORDER}; border-radius: 4px;")
+        self.setStyleSheet(f"""
+            NewsUpdatesWidget {{
+                background: {C.PANEL};
+                border: 1px solid {C.BORDER};
+                border-radius: 4px;
+            }}
+        """)
         lay = QVBoxLayout(self)
         lay.setContentsMargins(10, 8, 10, 8)
         lay.setSpacing(6)
 
-        title = QLabel("◈ NEWS & UPDATES")
+        title = QLabel("◈ NEWS & UPDATES  (LIVE)")
         title.setFont(QFont(_PRIMARY_FONT, 8, QFont.Weight.Bold))
         title.setStyleSheet(f"color: {C.PRI}; border: none; background: transparent;")
         lay.addWidget(title)
@@ -2165,16 +2186,21 @@ class NewsUpdatesWidget(QWidget):
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
         scroll.setStyleSheet(f"""
-            QScrollArea {{ background: transparent; border: none; }}
+            QScrollArea, QScrollArea * {{
+                background: transparent;
+                border: none;
+            }}
             QScrollBar:vertical {{
                 background: {C.PANEL2};
                 width: 5px;
                 border-radius: 2px;
+                border: none;
             }}
             QScrollBar::handle:vertical {{
                 background: {C.BORDER_B};
                 border-radius: 2px;
                 min-height: 15px;
+                border: none;
             }}
             QScrollBar::handle:vertical:hover {{
                 background: {C.PRI_DIM};
@@ -2182,36 +2208,96 @@ class NewsUpdatesWidget(QWidget):
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{ height: 0px; }}
         """)
 
-        news_container = QWidget()
-        news_container.setStyleSheet("background: transparent;")
-        news_lay = QVBoxLayout(news_container)
-        news_lay.setContentsMargins(0, 0, 4, 0)
-        news_lay.setSpacing(6)
+        self.news_container = QWidget()
+        self.news_container.setStyleSheet("background: transparent;")
+        self.news_lay = QVBoxLayout(self.news_container)
+        self.news_lay.setContentsMargins(0, 0, 4, 0)
+        self.news_lay.setSpacing(6)
 
-        news = [
-            "• Global AI Summit: Next-Gen Quantum Models & Alignment Standards.",
-            "• World Markets: Tech Sector Gains Lead Global Index Rally.",
-            "• SpaceX Starship Orbital Mission Successfully Reaches Target Orbit.",
-            "• Cyber Defense Alert: Critical Infrastructure Security Protocols Updated.",
-            "• Clean Energy Grid: Solar & Fusion Research Hits New Record Efficiency.",
-            "• Deep Space Astronomy: Webb Telescope Detects Water Vapor on Exoplanet.",
-            "• Microchip Tech: Next-Gen 1.4nm Processor Fabrication Underway.",
-            "• Robotics Milestone: Autonomous AI Assistants Integrated into Logistics.",
-            "• Global Climate Network: Real-Time Weather Satellite Mesh Operational.",
-            "• Telecom 6G Standards: High-Band Spectrum Tests Exceed 100 Gbps.",
-            "• Quantum Computing: Error-Corrected Logical Qubit Record Broken.",
-            "• Aerospace Initiative: Hypersonic Transit Flight Completed Successfully."
-        ]
-        for item in news:
+        scroll.setWidget(self.news_container)
+        lay.addWidget(scroll, stretch=1)
+
+        self._news_sig.connect(self._update_news_list)
+
+        # Initial live loading indicator
+        self._update_news_list([
+            "• CONNECTING TO LIVE NEWS NETWORK...",
+            "• FETCHING LATEST TRENDING HEADLINES (INDIA & WORLD)..."
+        ])
+
+        # Fetch live news immediately on startup
+        self._refresh_live_news()
+
+        # Periodically refresh live news every 5 minutes while open
+        self._refresh_timer = QTimer(self)
+        self._refresh_timer.timeout.connect(self._refresh_live_news)
+        self._refresh_timer.start(300_000)
+
+    def _refresh_live_news(self):
+        threading.Thread(target=self._fetch_live_news_thread, daemon=True).start()
+
+    def _update_news_list(self, news_items: list[str]):
+        while self.news_lay.count():
+            child = self.news_lay.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
+        for item in news_items:
             lbl = QLabel(item)
             lbl.setFont(QFont(_PRIMARY_FONT, 7))
             lbl.setStyleSheet(f"color: {C.TEXT}; border: none; background: transparent;")
             lbl.setWordWrap(True)
-            news_lay.addWidget(lbl)
+            self.news_lay.addWidget(lbl)
 
-        news_lay.addStretch()
-        scroll.setWidget(news_container)
-        lay.addWidget(scroll, stretch=1)
+        self.news_lay.addStretch()
+
+    def _fetch_live_news_thread(self):
+        try:
+            import urllib.request
+            import ssl
+            import html
+            import xml.etree.ElementTree as ET
+
+            ctx = ssl._create_unverified_context()
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            feeds = [
+                "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en",
+                "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en",
+                "http://feeds.bbci.co.uk/news/rss.xml",
+                "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
+            ]
+
+            live_items = []
+            seen = set()
+
+            for url in feeds:
+                try:
+                    req = urllib.request.Request(url, headers=headers)
+                    with urllib.request.urlopen(req, context=ctx, timeout=5) as resp:
+                        xml_data = resp.read()
+                    root = ET.fromstring(xml_data)
+                    items = root.findall(".//item")
+                    for item in items[:8]:
+                        t_elem = item.find("title")
+                        if t_elem is not None and t_elem.text:
+                            raw_t = html.unescape(t_elem.text.strip())
+                            if " - " in raw_t:
+                                t_clean = raw_t.rsplit(" - ", 1)[0].strip()
+                            else:
+                                t_clean = raw_t
+                            key = t_clean.lower()
+                            if t_clean and key not in seen:
+                                seen.add(key)
+                                live_items.append(f"• {t_clean}")
+                except Exception:
+                    pass
+
+            if live_items:
+                self._news_sig.emit(live_items[:18])
+            else:
+                self._news_sig.emit(["• LIVE NEWS FEED UNREACHABLE — CHECK INTERNET CONNECTION."])
+        except Exception:
+            pass
 
 class VoiceInterfaceWidget(QWidget):
     def __init__(self, main_win, parent=None):
@@ -2485,10 +2571,6 @@ class MainWindow(QMainWindow):
         log_hdr.setStyleSheet(f"color: {C.PRI}; background: transparent;")
         log_hdr_lay.addWidget(log_hdr)
         log_hdr_lay.addStretch()
-        all_lbl = QLabel("ALL ▾ ☰")
-        all_lbl.setFont(QFont(_PRIMARY_FONT, 7, QFont.Weight.Bold))
-        all_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent;")
-        log_hdr_lay.addWidget(all_lbl)
         cl_lay.addLayout(log_hdr_lay)
 
         self._log = LogWidget()
@@ -3415,7 +3497,7 @@ class MainWindow(QMainWindow):
         sec_lay.setContentsMargins(6, 6, 6, 6)
         sec_lay.setSpacing(2)
         
-        sec_title = QLabel("🛡 SECURITY PROTOCOL")
+        sec_title = QLabel("SECURITY PROTOCOL")
         sec_title.setFont(QFont(_PRIMARY_FONT, 7, QFont.Weight.Bold))
         sec_title.setStyleSheet(f"color: {C.TEXT_MED}; border: none; background: transparent;")
         sec_lay.addWidget(sec_title)
@@ -3453,23 +3535,6 @@ class MainWindow(QMainWindow):
         lay.addWidget(input_hdr)
         
         lay.addLayout(self._build_input_row())
-
-        voice_status_lay = QHBoxLayout()
-        voice_status_lay.setContentsMargins(2, 0, 2, 0)
-        
-        self.rec_icon = VectorIcon("mic", C.TEXT_MED)
-        voice_status_lay.addWidget(self.rec_icon)
-        voice_rec_lbl = QLabel(" VOICE RECOGNITION")
-        voice_rec_lbl.setFont(QFont(_PRIMARY_FONT, 7, QFont.Weight.Bold))
-        voice_rec_lbl.setStyleSheet(f"color: {C.TEXT_MED}; background: transparent;")
-        voice_status_lay.addWidget(voice_rec_lbl)
-        
-        voice_status_lbl = QLabel("ACTIVE")
-        voice_status_lbl.setFont(QFont(_PRIMARY_FONT, 7, QFont.Weight.Bold))
-        voice_status_lbl.setStyleSheet(f"color: {C.GREEN}; background: transparent;")
-        voice_status_lay.addWidget(voice_status_lbl)
-        voice_status_lay.addStretch()
-        lay.addLayout(voice_status_lay)
 
         # Bottom operational buttons with VectorIconButton
         bot_btns = QHBoxLayout()
