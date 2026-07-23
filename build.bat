@@ -1,6 +1,6 @@
 @echo off
 echo ===================================================
-echo   Building J.A.R.V.I.S. AI Production Executable
+echo   Building J.A.R.V.I.S. AI Standalone Executable
 echo ===================================================
 
 if not exist venv (
@@ -18,13 +18,9 @@ if exist build rmdir /s /q build
 if exist release rmdir /s /q release
 
 echo Running PyInstaller...
-pyinstaller --noconfirm Jarvis.spec
-
-echo Preparing release directory...
-if not exist release mkdir release
-xcopy /E /I /Y dist\Jarvis release\Jarvis
+pyinstaller --noconfirm --distpath release Jarvis.spec
 
 echo ===================================================
-echo   Build Completed Successfully! Output in release/
+echo   Build Completed Successfully! Output: release/Jarvis.exe
 echo ===================================================
 pause

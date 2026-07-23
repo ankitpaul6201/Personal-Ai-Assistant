@@ -6,7 +6,7 @@ from pathlib import Path
 
 block_cipher = None
 
-# Assets and data files to bundle
+# Assets and data files to bundle into single executable
 datas = []
 for folder in ['assets', 'config']:
     if os.path.exists(folder):
@@ -43,6 +43,10 @@ hiddenimports = [
     'asyncio',
     'xml.etree.ElementTree',
     'html',
+    'encodings',
+    'encodings.utf_8',
+    'encodings.ascii',
+    'encodings.aliases',
 ]
 
 a = Analysis(
@@ -63,31 +67,25 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
+# Single standalone executable configuration
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     [],
-    exclude_binaries=True,
     name='Jarvis',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
     icon='assets/icon.ico',
-)
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name='Jarvis',
 )
