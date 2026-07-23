@@ -107,42 +107,48 @@ def _load_custom_fonts() -> None:
         return
     _FONTS_LOADED = True
 
-    ethno_path = BASE_DIR / "Ethnocentric-Regular.otf"
-    if ethno_path.exists():
-        try:
-            fid = QFontDatabase.addApplicationFont(str(ethno_path))
-            fams = QFontDatabase.applicationFontFamilies(fid)
-            if fams:
-                _ETHNOCENTRIC_FONT = fams[0]
-        except Exception:
-            pass
+    fonts_dir = BASE_DIR / "assets" / "fonts"
+
+    ethno_paths = [fonts_dir / "Ethnocentric-Regular.otf", BASE_DIR / "Ethnocentric-Regular.otf"]
+    for ethno_path in ethno_paths:
+        if ethno_path.exists():
+            try:
+                fid = QFontDatabase.addApplicationFont(str(ethno_path))
+                fams = QFontDatabase.applicationFontFamilies(fid)
+                if fams:
+                    _ETHNOCENTRIC_FONT = fams[0]
+                    break
+            except Exception:
+                pass
 
     for fname in ["DS-DIGII.TTF", "DS-DIGI.TTF", "DS-DIGIB.TTF", "DS-DIGIT.TTF"]:
-        fpath = BASE_DIR / fname
-        if fpath.exists():
-            try:
-                fid = QFontDatabase.addApplicationFont(str(fpath))
-                fams = QFontDatabase.applicationFontFamilies(fid)
-                if fams and _DS_DIGI_FONT == "Courier New":
-                    _DS_DIGI_FONT = fams[0]
-            except Exception:
-                pass
+        for fdir in [fonts_dir, BASE_DIR]:
+            fpath = fdir / fname
+            if fpath.exists():
+                try:
+                    fid = QFontDatabase.addApplicationFont(str(fpath))
+                    fams = QFontDatabase.applicationFontFamilies(fid)
+                    if fams and _DS_DIGI_FONT == "Courier New":
+                        _DS_DIGI_FONT = fams[0]
+                except Exception:
+                    pass
 
-    scp_dir = BASE_DIR / "Source_Code_Pro"
-    scp_files = [
-        scp_dir / "static" / "SourceCodePro-Regular.ttf",
-        scp_dir / "static" / "SourceCodePro-Bold.ttf",
-        scp_dir / "SourceCodePro-VariableFont_wght.ttf",
-    ]
-    for scp_path in scp_files:
-        if scp_path.exists():
-            try:
-                fid = QFontDatabase.addApplicationFont(str(scp_path))
-                fams = QFontDatabase.applicationFontFamilies(fid)
-                if fams and _PRIMARY_FONT == "Courier New":
-                    _PRIMARY_FONT = fams[0]
-            except Exception:
-                pass
+    scp_dirs = [fonts_dir / "Source_Code_Pro", BASE_DIR / "Source_Code_Pro"]
+    for scp_dir in scp_dirs:
+        scp_files = [
+            scp_dir / "static" / "SourceCodePro-Regular.ttf",
+            scp_dir / "static" / "SourceCodePro-Bold.ttf",
+            scp_dir / "SourceCodePro-VariableFont_wght.ttf",
+        ]
+        for scp_path in scp_files:
+            if scp_path.exists():
+                try:
+                    fid = QFontDatabase.addApplicationFont(str(scp_path))
+                    fams = QFontDatabase.applicationFontFamilies(fid)
+                    if fams and _PRIMARY_FONT == "Courier New":
+                        _PRIMARY_FONT = fams[0]
+                except Exception:
+                    pass
 
 
 def apply_ui_accent(accent_hex: str) -> bool:
