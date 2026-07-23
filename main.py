@@ -36,6 +36,7 @@ from pathlib import Path
 import sounddevice as sd
 from google import genai
 from core.resource_manager import resource_path, setup_crash_logging
+from ui import JarvisUI
 
 setup_crash_logging()
 
