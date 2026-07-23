@@ -14,9 +14,12 @@ memory/*.json
 .env
 .env.*
 
-# Large compiled binaries (> 100MB GitHub limit)
+# Large compiled binaries & PyInstaller build outputs
 *.dll
 *.exe
+build/
+dist/
+release/
 Desktop Mate/
 
 # Logs & Temporary Files

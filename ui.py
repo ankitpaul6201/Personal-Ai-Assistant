@@ -24,7 +24,7 @@ from PyQt6.QtCore import (
 )
 from PyQt6.QtGui import (
     QBrush, QColor, QConicalGradient, QDragEnterEvent, QDropEvent, QFont,
-    QFontDatabase, QKeySequence, QLinearGradient, QPainter, QPainterPath,
+    QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPainter, QPainterPath,
     QPen, QPixmap, QRadialGradient, QShortcut,
 )
 from PyQt6.QtWidgets import (
@@ -33,12 +33,11 @@ from PyQt6.QtWidgets import (
     QStackedWidget, QTextEdit, QVBoxLayout, QWidget, QProgressBar,
 )
 
-def _base_dir() -> Path:
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent
-    return Path(__file__).resolve().parent
+from core.resource_manager import resource_path, setup_crash_logging
 
-BASE_DIR   = _base_dir()
+setup_crash_logging()
+
+BASE_DIR   = resource_path(".")
 CONFIG_DIR = BASE_DIR / "config"
 API_FILE   = CONFIG_DIR / "api_keys.json"
 
@@ -2511,6 +2510,9 @@ class MainWindow(QMainWindow):
             apply_ui_accent(_ui_color)
 
         self.setWindowTitle(f"{_display} AI")
+        app_icon_path = BASE_DIR / "assets" / "logo.png"
+        if app_icon_path.exists():
+            self.setWindowIcon(QIcon(str(app_icon_path)))
         self.setMinimumSize(_MIN_W, _MIN_H)
         self.resize(_DEFAULT_W, _DEFAULT_H)
 
@@ -3366,11 +3368,28 @@ class MainWindow(QMainWindow):
         lay = QHBoxLayout(w)
         lay.setContentsMargins(16, 0, 16, 0)
 
-        # Left Header Title — Only J.A.R.V.I.S. text
+        # Left Header Title — Logo icon + J.A.R.V.I.S. text
+        hdr_left = QHBoxLayout()
+        hdr_left.setSpacing(10)
+
+        logo_img_path = BASE_DIR / "assets" / "logo.png"
+        if logo_img_path.exists():
+            logo_icon = QLabel()
+            px = QPixmap(str(logo_img_path)).scaled(
+                30, 30,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            )
+            logo_icon.setPixmap(px)
+            logo_icon.setStyleSheet("background: transparent; border: none;")
+            hdr_left.addWidget(logo_icon)
+
         logo = QLabel("J.A.R.V.I.S.")
         logo.setFont(QFont(_ETHNOCENTRIC_FONT, 14, QFont.Weight.Bold))
         logo.setStyleSheet(f"color: {C.PRI}; border: none; background: transparent; letter-spacing: 2px;")
-        lay.addWidget(logo)
+        hdr_left.addWidget(logo)
+
+        lay.addLayout(hdr_left)
         lay.addStretch()
 
         # Clock & Date on the Right

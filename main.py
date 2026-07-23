@@ -35,8 +35,10 @@ from pathlib import Path
 
 import sounddevice as sd
 from google import genai
-from google.genai import types
-from ui import JarvisUI
+from core.resource_manager import resource_path, setup_crash_logging
+
+setup_crash_logging()
+
 from memory.memory_manager import (
     load_memory, update_memory, format_memory_for_prompt,
 )
@@ -1319,7 +1321,10 @@ class JarvisLive:
             await asyncio.sleep(delay)
 
 def main():
-    ui = JarvisUI("face.png")
+    face_file = resource_path("assets/logo.png")
+    if not face_file.exists():
+        face_file = resource_path("face.png")
+    ui = JarvisUI(str(face_file))
 
     def runner():
         ui.wait_for_api_key()
