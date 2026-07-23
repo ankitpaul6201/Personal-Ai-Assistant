@@ -23,13 +23,14 @@ class TestConfigManager(unittest.TestCase):
         self.tmp_dir.cleanup()
 
     def test_save_and_read_api_key(self):
-        config_manager.save_api_keys("AIzaSyD0123456789TestKey")
+        mock_key = "MOCK_KEY_" + "123456789012345678901234567890"
+        config_manager.save_api_keys(mock_key)
         assert config_manager.config_exists()
         
         # Verify JSON file written
         with open(self.config_file, "r", encoding="utf-8") as f:
             data = json.load(f)
-        assert data.get("gemini_api_key") == "AIzaSyD0123456789TestKey"
+        assert data.get("gemini_api_key") == mock_key
 
 if __name__ == "__main__":
     unittest.main()
