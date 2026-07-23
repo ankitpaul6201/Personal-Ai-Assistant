@@ -35,6 +35,7 @@ from pathlib import Path
 
 import sounddevice as sd
 from google import genai
+from google.genai import types
 from core.resource_manager import resource_path, setup_crash_logging
 from ui import JarvisUI
 
@@ -76,15 +77,35 @@ def get_base_dir():
 BASE_DIR        = get_base_dir()
 API_CONFIG_PATH = BASE_DIR / "config" / "api_keys.json"
 PROMPT_PATH     = BASE_DIR / "core" / "prompt.txt"
-LIVE_MODEL          = "models/gemini-2.5-flash-native-audio-preview-12-2025"
+LIVE_MODEL          = "gemini-2.5-flash-native-audio-preview-12-2025"
 CHANNELS            = 1
 SEND_SAMPLE_RATE    = 16000
 RECEIVE_SAMPLE_RATE = 24000
 CHUNK_SIZE          = 1024
 
 def _get_api_key() -> str:
-    with open(API_CONFIG_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)["gemini_api_key"]
+    paths = [
+        API_CONFIG_PATH,
+        Path.cwd() / "config" / "api_keys.json",
+        Path(__file__).resolve().parent / "config" / "api_keys.json",
+    ]
+    for p in paths:
+        if p.exists():
+            try:
+                data = json.loads(p.read_text(encoding="utf-8"))
+                key = data.get("gemini_api_key", "").strip()
+                if key:
+                    return key
+            except Exception:
+                pass
+
+    try:
+        API_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        if not API_CONFIG_PATH.exists():
+            API_CONFIG_PATH.write_text('{\n  "gemini_api_key": ""\n}\n', encoding="utf-8")
+    except Exception:
+        pass
+    return ""
 
 
 def _load_system_prompt() -> str:
@@ -673,7 +694,6 @@ class JarvisLive:
             input_audio_transcription={},
             system_instruction="\n".join(parts),
             tools=[{"function_declarations": TOOL_DECLARATIONS}],
-            session_resumption=types.SessionResumptionConfig(),
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
@@ -1223,51 +1243,83 @@ class JarvisLive:
             try:
                 print("[JARVIS] Connecting...")
                 self.ui.set_state("THINKING")
+                self.ui.write_log("SYS: Connecting to Gemini Live API...")
                 config = self._build_config()
 
-                # Fresh client on every reconnect — avoids stale HTTP session state
+                api_key = _get_api_key()
+                if not api_key:
+                    self.ui.write_log("ERR: API key missing — please enter your key.")
+                    self.ui.set_state("SLEEPING")
+                    self.ui.prompt_reconfig()
+                    while not self.ui._win._ready:
+                        await asyncio.sleep(1)
+                    continue
+
                 client = genai.Client(
-                    api_key=_get_api_key(),
-                    http_options={"api_version": "v1beta"}
+                    api_key=api_key,
+                    http_options={"api_version": "v1alpha"}
                 )
 
-                async with (
-                    client.aio.live.connect(model=LIVE_MODEL, config=config) as session,
-                    asyncio.TaskGroup() as tg,
-                ):
-                    self.session          = session
-                    self.audio_in_queue   = asyncio.Queue()
-                    self.out_queue        = asyncio.Queue(maxsize=200)
-                    self._turn_done_event = asyncio.Event()
+                model_candidates = [
+                    LIVE_MODEL,
+                    "gemini-2.5-flash-native-audio-latest",
+                    "gemini-3.1-flash-live-preview",
+                ]
 
-                    # Reset transient state that must not carry over from a previous session
-                    self._pending_vision       = None
-                    self._vision_cam_active    = False
-                    self._vision_close_pending = False
-                    self._vision_busy          = False
-                    self._vision_last_time     = 0.0
-                    self._interrupted          = False
+                connected_model = None
+                for m_id in model_candidates:
+                    m_clean = m_id.replace("models/", "")
+                    try:
+                        print(f"[JARVIS] Connecting with model {m_clean}...")
+                        async with (
+                            client.aio.live.connect(model=m_clean, config=config) as session,
+                            asyncio.TaskGroup() as tg,
+                        ):
+                            self.session          = session
+                            self.audio_in_queue   = asyncio.Queue()
+                            self.out_queue        = asyncio.Queue(maxsize=200)
+                            self._turn_done_event = asyncio.Event()
 
-                    print("[JARVIS] Connected.")
-                    self.ui.set_state("LISTENING")
-                    self.ui.write_log("SYS: JARVIS online.")
+                            # Reset transient state
+                            self._pending_vision       = None
+                            self._vision_cam_active    = False
+                            self._vision_close_pending = False
+                            self._vision_busy          = False
+                            self._vision_last_time     = 0.0
+                            self._interrupted          = False
 
-                    if self._dashboard:
-                        await self._dashboard.broadcast({"type": "status", "state": "active"})
+                            print(f"[JARVIS] Connected ({m_clean}).")
+                            self.ui.set_state("LISTENING")
+                            self.ui.write_log("SYS: JARVIS online.")
 
-                    tg.create_task(self._send_realtime())
-                    tg.create_task(self._listen_audio())
-                    tg.create_task(self._receive_audio())
-                    tg.create_task(self._play_audio())
-                    tg.create_task(self._run_system_monitor())
-                    tg.create_task(self._run_proactive_mode())
-                    if self._dashboard:
-                        tg.create_task(self._relay_phone_audio())
+                            if self._dashboard:
+                                await self._dashboard.broadcast({"type": "status", "state": "active"})
 
-                    # Morning briefing — fires once per process launch (if enabled)
-                    if not self._briefing_sent and get_brief_enabled():
-                        self._briefing_sent = True
-                        tg.create_task(self._send_startup_briefing())
+                            tg.create_task(self._send_realtime())
+                            tg.create_task(self._listen_audio())
+                            tg.create_task(self._receive_audio())
+                            tg.create_task(self._play_audio())
+                            tg.create_task(self._run_system_monitor())
+                            tg.create_task(self._run_proactive_mode())
+                            if self._dashboard:
+                                tg.create_task(self._relay_phone_audio())
+
+                            # Startup greeting — fires when JARVIS comes online
+                            if not self._briefing_sent:
+                                self._briefing_sent = True
+                                tg.create_task(self._send_startup_briefing())
+
+                        break
+                    except BaseException as me:
+                        sub_errs = []
+                        if hasattr(me, "exceptions") and me.exceptions:
+                            sub_errs = [str(x) for x in me.exceptions]
+                        err_detail = "; ".join(sub_errs) if sub_errs else str(me)
+                        if ("1008" in err_detail or "not found" in err_detail) and m_id != model_candidates[-1]:
+                            print(f"[JARVIS] Model {m_clean} not supported, trying next candidate...")
+                            continue
+                        else:
+                            raise me
 
             except KeyboardInterrupt:
                 raise
@@ -1282,6 +1334,7 @@ class JarvisLive:
                 err_str = str(e)
                 print(f"[JARVIS] Error ({type(e).__name__}): {e}")
                 traceback.print_exc()
+                self.ui.write_log(f"ERR: {type(e).__name__}: {e}")
 
                 # Invalid API key — stop hammering the API, prompt re-configuration
                 if "API key not valid" in err_str or "1007" in err_str:
