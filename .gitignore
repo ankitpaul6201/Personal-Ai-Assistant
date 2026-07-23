@@ -4,8 +4,12 @@ __pycache__/
 *$py.class
 *.so
 
-# Environment & Secret Credentials (NEVER COMMIT API KEYS OR PERSONAL MEMORY)
+# Environment, Certificates & Secret Credentials (NEVER COMMIT API KEYS, PRIVATE KEYS OR MEMORY)
 config/api_keys.json
+config/certs/
+*.key
+*.crt
+*.pem
 memory/*.json
 .env
 .env.*
