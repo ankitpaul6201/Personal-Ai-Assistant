@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jarvis-ai"
+version = "1.0.0"
+description = "Real-Time Personal AI Assistant powered by Gemini Live API"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Ankit Paul", email = "ankitpaul6201@gmail.com" }
+]
+license = { text = "MIT" }
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "W", "B", "S", "I"]
+ignore = ["S101", "S603"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --import-mode=importlib"
+testpaths = ["tests"]
