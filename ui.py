@@ -3363,32 +3363,11 @@ class MainWindow(QMainWindow):
         lay = QHBoxLayout(w)
         lay.setContentsMargins(16, 0, 16, 0)
 
-        # Left Header Title — Logo icon + J.A.R.V.I.S. text
-        hdr_left = QHBoxLayout()
-        hdr_left.setSpacing(10)
-
-        logo_img_path = BASE_DIR / "face.png"
-        if not logo_img_path.exists():
-            logo_img_path = BASE_DIR / "assets" / "face.png"
-        if not logo_img_path.exists():
-            logo_img_path = BASE_DIR / "assets" / "logo.png"
-        if logo_img_path.exists():
-            logo_icon = QLabel()
-            px = QPixmap(str(logo_img_path)).scaled(
-                30, 30,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-            logo_icon.setPixmap(px)
-            logo_icon.setStyleSheet("background: transparent; border: none;")
-            hdr_left.addWidget(logo_icon)
-
+        # Left Header Title — Only J.A.R.V.I.S. text
         logo = QLabel("J.A.R.V.I.S.")
         logo.setFont(QFont(_ETHNOCENTRIC_FONT, 14, QFont.Weight.Bold))
         logo.setStyleSheet(f"color: {C.PRI}; border: none; background: transparent; letter-spacing: 2px;")
-        hdr_left.addWidget(logo)
-
-        lay.addLayout(hdr_left)
+        lay.addWidget(logo)
         lay.addStretch()
 
         # Clock & Date on the Right
