@@ -33,7 +33,7 @@ from PyQt6.QtWidgets import (
     QStackedWidget, QTextEdit, QVBoxLayout, QWidget, QProgressBar,
 )
 
-from core.resource_manager import resource_path, setup_crash_logging
+from jarvis.core.resource_manager import resource_path, setup_crash_logging
 
 setup_crash_logging()
 
@@ -2501,11 +2501,11 @@ class MainWindow(QMainWindow):
             apply_ui_accent(_ui_color)
 
         self.setWindowTitle(f"{_display} AI")
-        app_icon_path = BASE_DIR / "face.png"
+        app_icon_path = BASE_DIR / "assets" / "images" / "face.png"
         if not app_icon_path.exists():
             app_icon_path = BASE_DIR / "assets" / "face.png"
         if not app_icon_path.exists():
-            app_icon_path = BASE_DIR / "assets" / "logo.png"
+            app_icon_path = BASE_DIR / "face.png"
         if app_icon_path.exists():
             self.setWindowIcon(QIcon(str(app_icon_path)))
         self.setMinimumSize(_MIN_W, _MIN_H)
@@ -2697,7 +2697,7 @@ class MainWindow(QMainWindow):
 
         self._quick_drawer = self._build_quick_drawer()
         self._update_autostart_btn(self._check_autostart())
-        from memory.config_manager import get_brief_enabled as _gbe
+        from jarvis.memory.config_manager import get_brief_enabled as _gbe
         self._update_brief_btn(_gbe())
 
         self._clock_tmr = QTimer(self)
@@ -3120,7 +3120,9 @@ class MainWindow(QMainWindow):
         desktop = self._get_desktop_dir()
 
         # Arc-reactor icon (.ico — also exported as .png for Linux/macOS)
-        ico_path = Path(__file__).resolve().parent / "config" / "jarvis.ico"
+        ico_path = BASE_DIR / "assets" / "icons" / "jarvis.ico"
+        if not ico_path.exists():
+            ico_path = BASE_DIR / "config" / "jarvis.ico"
         if not ico_path.exists():
             self._build_jarvis_icon(ico_path)
 
@@ -4046,7 +4048,7 @@ class MainWindow(QMainWindow):
             """)
 
     def _toggle_brief(self):
-        from memory.config_manager import get_brief_enabled, save_brief_enabled
+        from jarvis.memory.config_manager import get_brief_enabled, save_brief_enabled
         new_val = not get_brief_enabled()
         save_brief_enabled(new_val)
         self._update_brief_btn(new_val)

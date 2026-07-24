@@ -45,7 +45,7 @@ class ProactiveEngine:
         Builds the context snapshot sent to Gemini.
         Gemini reads it and decides freely what — if anything — to say.
         """
-        from memory.memory_manager import format_memory_for_prompt
+        from jarvis.memory.memory_manager import format_memory_for_prompt
 
         now      = datetime.now()
         time_str = now.strftime("%A, %B %d, %Y — %I:%M %p")

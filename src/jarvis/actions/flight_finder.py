@@ -135,7 +135,7 @@ def _search_flights_browser(
     cabin:       str,
 ) -> tuple[str, str]:
     import time
-    from actions.browser_control import browser_control
+    from jarvis.actions.browser_control import browser_control
 
     url = _build_google_flights_url(
         origin, destination, date, return_date, passengers, cabin

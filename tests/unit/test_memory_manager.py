@@ -1,9 +1,16 @@
 """Unit tests for memory_manager module."""
+import sys
 import json
 import unittest
 import tempfile
 from pathlib import Path
-from memory import memory_manager
+
+# Add src and src/jarvis to sys.path
+root_dir = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(root_dir / "src"))
+sys.path.insert(0, str(root_dir / "src" / "jarvis"))
+
+from jarvis.memory import memory_manager
 
 class TestMemoryManager(unittest.TestCase):
     def setUp(self):

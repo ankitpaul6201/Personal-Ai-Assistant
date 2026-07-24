@@ -25,7 +25,8 @@ def resource_path(relative_path: str | Path) -> Path:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = Path(sys._MEIPASS)
     except AttributeError:
-        base_path = Path(__file__).resolve().parent.parent
+        # File is at src/jarvis/core/resource_manager.py -> parents[3] is project root
+        base_path = Path(__file__).resolve().parents[3]
 
     path = Path(relative_path)
     if path.is_absolute():
@@ -38,7 +39,7 @@ def get_logs_dir() -> Path:
         if getattr(sys, "frozen", False):
             base_dir = Path(sys.executable).parent
         else:
-            base_dir = Path(__file__).resolve().parent.parent
+            base_dir = Path(__file__).resolve().parents[3]
     except Exception:
         base_dir = Path.cwd()
         

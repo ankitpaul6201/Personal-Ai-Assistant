@@ -1,0 +1,36 @@
+name: Build Release Executables
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+
+      - name: Install Build Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build Executable
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --icon=assets/icons/jarvis.ico --add-data "assets;assets" src/jarvis/main.py --name JARVIS-AI
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/JARVIS-AI.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

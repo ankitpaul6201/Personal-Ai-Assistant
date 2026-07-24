@@ -1,9 +1,16 @@
 """Security unit tests covering path traversal, secret masking, and injection prevention."""
+import sys
 import unittest
 import tempfile
 from pathlib import Path
-from core.security import mask_secret, validate_safe_path, sanitize_shell_args
-from core.exceptions import SecurityViolationError
+
+# Add src and src/jarvis to sys.path
+root_dir = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(root_dir / "src"))
+sys.path.insert(0, str(root_dir / "src" / "jarvis"))
+
+from jarvis.core.security import mask_secret, validate_safe_path, sanitize_shell_args
+from jarvis.core.exceptions import SecurityViolationError
 
 class TestSecurity(unittest.TestCase):
     def test_secret_masking(self):

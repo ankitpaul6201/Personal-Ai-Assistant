@@ -6,7 +6,7 @@ Provides thread-safe, structured logging with automatic secret redaction.
 
 import logging
 import sys
-from core.security import mask_secret
+from .security import mask_secret
 
 class RedactingFormatter(logging.Formatter):
     """Logging Formatter that redacts sensitive API keys and tokens from log messages."""

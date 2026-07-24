@@ -3,14 +3,18 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+*.egg-info/
+*.egg
+.eggs/
 
-# Environment, Certificates & Secret Credentials (NEVER COMMIT API KEYS, PRIVATE KEYS OR MEMORY)
+# Environment, Certificates & Secret Credentials (NEVER COMMIT SECRETS)
 config/api_keys.json
 config/certs/
 *.key
 *.crt
 *.pem
 memory/*.json
+src/jarvis/memory/*.json
 .env
 .env.*
 
@@ -23,10 +27,18 @@ release/
 Desktop Mate/
 
 # Logs & Temporary Files
+logs/
 *.log
 err.log
 out.log
 out2.log
+
+# Testing & Code Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
 
 # IDE & OS files
 .idea/
