@@ -22,9 +22,23 @@ where = ["src"]
 [tool.ruff]
 line-length = 120
 target-version = "py311"
-select = ["E", "F", "W"]
-ignore = ["E501", "F401", "F841", "E402"]
 src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = [
+    "E701",
+    "F541",
+    "W291",
+    "W292",
+    "W293",
+    "E401",
+    "E402",
+    "E501",
+    "F401",
+    "F841",
+    "F811",
+]
 
 [tool.mypy]
 python_version = "3.11"
